@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2025 hors<horsicq@gmail.com>
+/* Copyright (c) 2025 hors<horsicq@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ GuiMainWindow::GuiMainWindow(QWidget *pParent) : QMainWindow(pParent), ui(new Ui
 {
     ui->setupUi(this);
 
-    g_pModel = nullptr;
+    g_pFile = nullptr;
 
     setWindowTitle(XOptions::getTitle(X_APPLICATIONDISPLAYNAME, X_APPLICATIONVERSION));
 
@@ -56,51 +56,76 @@ GuiMainWindow::GuiMainWindow(QWidget *pParent) : QMainWindow(pParent), ui(new Ui
     g_xShortcuts.setName(X_SHORTCUTSFILE);
     g_xShortcuts.setNative(g_xOptions.isNative());
 
+    g_xShortcuts.addGroup(XShortcuts::GROUPID_HEX);
+    g_xShortcuts.addGroup(XShortcuts::GROUPID_DISASM);
+    g_xShortcuts.addGroup(XShortcuts::GROUPID_TABLE);
+
     g_xShortcuts.load();
 
-    connect(&g_xOptions, SIGNAL(openFile(QString)), this, SLOT(_scan(QString)));
-    connect(&g_xOptions, SIGNAL(errorMessage(QString)), this, SLOT(errorMessageSlot(QString)));
+    connect(&g_xOptions, SIGNAL(openFile(QString)), this, SLOT(setFileName(QString)));
 
     g_pRecentFilesMenu = g_xOptions.createRecentFilesMenu(this);
 
     ui->toolButtonRecentFiles->setEnabled(g_xOptions.getRecentFiles().count());
 
+    ui->widgetMain->setGlobal(&g_xShortcuts, &g_xOptions);
+
     adjustView();
 
     if (QCoreApplication::arguments().count() > 1) {
-        _scan(QCoreApplication::arguments().at(1));
+        setFileName(QCoreApplication::arguments().at(1));
     }
 }
 
 GuiMainWindow::~GuiMainWindow()
 {
+    if (g_pFile) {
+        if (g_pFile->isOpen()) {
+            g_pFile->close();
+        }
+
+        delete g_pFile;
+        g_pFile = nullptr;
+    }
+
     g_xOptions.save();
+    g_xShortcuts.save();
 
     delete ui;
 }
 
-void GuiMainWindow::scanFile(const QString &sFileName)
-{
-    if (sFileName != "") {
-
-    }
-}
-
-void GuiMainWindow::_scan(const QString &sName)
+void GuiMainWindow::setFileName(const QString &sName)
 {
     QFileInfo fi(sName);
 
     if (fi.isFile()) {
+        ui->lineEditFileName->setText(sName);
 
+        if (g_pFile) {
+            if (g_pFile->isOpen()) {
+                g_pFile->close();
+            }
+
+            delete g_pFile;
+            g_pFile = nullptr;
+        }
+
+        g_pFile = new QFile;
+        g_pFile->setFileName(sName);
+
+        if (g_pFile->open(QIODevice::ReadOnly)) {
+            XExtractor::OPTIONS extractorOptions = XExtractor::getDefaultOptions();
+            extractorOptions.bMenu_Hex = true;
+
+            ui->widgetMain->setData(g_pFile, extractorOptions, true);
+            g_xOptions.setLastFileName(sName);
+
+            adjustView();
+        } else {
+            QMessageBox::critical(this, tr("Error"), tr("Cannot open file"));
+        }
     }
 }
-
-void GuiMainWindow::process()
-{
-    QString sFileName = ui->lineEditFileName->text().trimmed();
-    scanFile(sFileName);
-}
-
 
 void GuiMainWindow::on_pushButtonExit_clicked()
 {
@@ -114,10 +139,8 @@ void GuiMainWindow::on_pushButtonOpenFile_clicked()
     QString sFileName = QFileDialog::getOpenFileName(this, tr("Open file") + QString("..."), sDirectory, tr("All files") + QString(" (*)"));
 
     if (!sFileName.isEmpty()) {
-        ui->lineEditFileName->setText(sFileName);
-
         if (g_xOptions.isScanAfterOpen()) {
-            _scan(sFileName);
+            setFileName(sFileName);
         }
     }
 }
@@ -151,9 +174,7 @@ void GuiMainWindow::dropEvent(QDropEvent *pEvent)
 
             sFileName = XBinary::convertFileName(sFileName);
 
-            if (g_xOptions.isScanAfterOpen()) {
-                _scan(sFileName);
-            }
+            setFileName(sFileName);
         }
     }
 }

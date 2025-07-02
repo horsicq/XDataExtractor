@@ -31,6 +31,7 @@
 #include "dialogoptions.h"
 #include "xoptions.h"
 #include "xextractor.h"
+#include "xextractorwidget.h"
 
 namespace Ui {
 class GuiMainWindow;
@@ -44,9 +45,7 @@ public:
     ~GuiMainWindow() override;
 
 private slots:
-    void scanFile(const QString &sFileName);
-    void _scan(const QString &sName);
-    void process();
+    void setFileName(const QString &sName);
     void on_pushButtonExit_clicked();
     void on_pushButtonOpenFile_clicked();
     void on_pushButtonAbout_clicked();
@@ -65,7 +64,7 @@ private:
     XOptions g_xOptions;
     XShortcuts g_xShortcuts;
     QMenu *g_pRecentFilesMenu;
-    QAbstractItemModel *g_pModel;
+    QFile *g_pFile;
 };
 
 #endif  // GUIMAINWINDOW_H
