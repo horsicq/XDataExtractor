@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(xdec VERSION ${X_PROJECT_VERSION} LANGUAGES CXX)
 
-include(../../../_mylibs/build_tools/cmake/cpp_standart_setup.cmake)
+include(../../dep/build_tools/cmake/cpp_standart_setup.cmake)
 
 add_definitions(-DUSE_DEX)
 add_definitions(-DUSE_PDF)
@@ -12,7 +12,7 @@ if(WIN32)
     add_definitions(-DNOMINMAX)
 endif()
 
-include(${CMAKE_CURRENT_LIST_DIR}/../../../_mylibs/XExtractor/xextractor.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../../dep/XExtractor/xextractor.cmake)
 
 set(PROJECT_SOURCES
     ${XEXTRACTOR_SOURCES}
@@ -58,8 +58,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 
 if(WIN32)
     install (TARGETS ${PROJECT_NAME} DESTINATION "./")
-    include(../../../_mylibs/build_tools/cmake/deploy_qt_windows.cmake)
-    include(../../../_mylibs/build_tools/cmake/deploy_msvc.cmake)
+    include(../../dep/build_tools/cmake/deploy_qt_windows.cmake)
+    include(../../dep/build_tools/cmake/deploy_msvc.cmake)
 elseif(APPLE)
     # no console version for macOS app bundle
 else()

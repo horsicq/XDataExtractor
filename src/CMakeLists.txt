@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+find_package(QT NAMES Qt5 Qt6 REQUIRED COMPONENTS Core)
 
 if(${QT_VERSION_MAJOR} EQUAL 5)
     if(${QT_VERSION} VERSION_GREATER_EQUAL 5.6.0)
