@@ -127,3 +127,12 @@
 [submodule "dep/XDataConvertorWidget"]
 	path = dep/XDataConvertorWidget
 	url = https://github.com/horsicq/XDataConvertorWidget
+[submodule "dep/XQwt"]
+	path = dep/XQwt
+	url = https://github.com/horsicq/XQwt
+[submodule "dep/XDisasmCore"]
+	path = dep/XDisasmCore
+	url = https://github.com/horsicq/XDisasmCore
+[submodule "dep/XRegionsWidget"]
+	path = dep/XRegionsWidget
+	url = https://github.com/horsicq/XRegionsWidget
