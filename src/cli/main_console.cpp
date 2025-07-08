@@ -24,12 +24,56 @@
 
 #include "../global.h"
 #include "xextractor.h"
+#include "xmodel_extractor.h"
 #include "xoptions.h"
 
-// qint32 handleFile(const QString &sFileName, XExtractor::OPTIONS *pExtractorOptions, qint32 nTotal)
-// {
-//     return 1;
-// }
+qint32 handleFile(const QString &sFileName, XExtractor::OPTIONS *pExtractorOptions, qint32 nTotal)
+{
+    qint32 nResult = 0;
+
+    QFileInfo fi(sFileName);
+
+    if (fi.isFile()) {
+        QFile file;
+        file.setFileName(sFileName);
+
+        if (file.open(QIODevice::ReadOnly)) {
+            XExtractor::DATA extractorData = {};
+            extractorData.options = *pExtractorOptions;
+            XBinary::FT fileType = XBinary::getPrefFileType(&file, true);
+            extractorData.memoryMap = XFormats::getMemoryMap(fileType, XBinary::MAPMODE_UNKNOWN, &file);
+            XExtractor extractor;
+            extractor.setData(&file, &extractorData, nullptr);
+            extractor.process();
+
+            if (extractorData.options.bShowList) {
+                XModel_Extractor model(&extractorData);
+                model.adjustColumnsToContent(true);
+                XOptions::printModel(&model);
+            }
+
+            file.close();
+        }
+
+        nResult++;
+    } else if (fi.isDir()) {
+        QDir dir(sFileName);
+
+        QFileInfoList eil = dir.entryInfoList();
+
+        qint32 nNumberOfFiles = eil.count();
+
+        for (qint32 i = 0; i < nNumberOfFiles; i++) {
+            QString sFN = eil.at(i).fileName();
+
+            if ((sFN != ".") && (sFN != "..")) {
+                nResult += handleFile(eil.at(i).absoluteFilePath(), pExtractorOptions, nTotal);
+            }
+        }
+    }
+
+    return nResult;
+}
 
 XOptions::CR ScanFiles(QList<QString> *pListArgs, XExtractor::OPTIONS *pExtractorOptions)
 {
@@ -41,7 +85,9 @@ XOptions::CR ScanFiles(QList<QString> *pListArgs, XExtractor::OPTIONS *pExtracto
 
     XOptions::printConsole("Get number of files", Qt::red);
 
-    for (qint32 i = 0; i < pListArgs->count(); i++) {
+    qint32 nCount = pListArgs->count();
+
+    for (qint32 i = 0; i < nCount; i++) {
         QString sFileName = pListArgs->at(i);
 
         if (QFileInfo::exists(sFileName)) {
@@ -58,11 +104,14 @@ XOptions::CR ScanFiles(QList<QString> *pListArgs, XExtractor::OPTIONS *pExtracto
         return result;
     }
 
-
     bool bShowFileName = nNumberOfFiles > 1;
 
-    for (qint32 i = 0; i < pListArgs->count(); i++) {
+    for (qint32 i = 0; i < nCount; i++) {
         QString sFileName = pListArgs->at(i);
+
+        if (QFileInfo::exists(sFileName)) {
+            handleFile(sFileName, pExtractorOptions, nNumberOfFiles);
+        }
     }
 
     // for (qint32 i = 0; i < nNumberOfFiles; i++) {
@@ -116,6 +165,10 @@ int main(int argc, char *argv[])
 
     parser.addPositionalArgument("target", "The file or directory to open.");
 
+    QCommandLineOption clList(QStringList() << "l"
+                                                       << "list",
+                                         "Show result as list");
+
     QCommandLineOption clExtractorMode(QStringList() << "m"
                                                      << "mode",
                                        "Extractor mode <modename>", "modename");
@@ -123,58 +176,32 @@ int main(int argc, char *argv[])
     QCommandLineOption clOutputDirectory(QStringList() << "o"
                                                      << "output",
                                        "Output <directory>", "directory");
-    // QCommandLineOption clDeepScan(QStringList() << "d"
-    //                                             << "deepscan",
-    //                               "Deep scan.");
-    // QCommandLineOption clHeuristicScan(QStringList() << "u"
-    //                                                  << "heuristicscan",
-    //                                    "Heuristic scan.");
-    // QCommandLineOption clAggresiveScan(QStringList() << "g"
-    //                                                  << "aggressivecscan",
-    //                                    "Aggressive scan.");
-    // QCommandLineOption clVerbose(QStringList() << "b"
-    //                                            << "verbose",
-    //                              "Verbose.");
-    // QCommandLineOption clAllTypesScan(QStringList() << "a"
-    //                                                 << "alltypes",
-    //                                   "Scan all types.");
-    // QCommandLineOption clFormatResult(QStringList() << "f"
-    //                                                 << "format",
-    //                                   "Format result.");
-    // QCommandLineOption clResultAsXml(QStringList() << "x"
-    //                                                << "xml",
-    //                                  "Result as XML.");
-    // QCommandLineOption clResultAsJson(QStringList() << "j"
-    //                                                 << "json",
-    //                                   "Result as JSON.");
-    // QCommandLineOption clResultAsCSV(QStringList() << "c"
-    //                                                << "csv",
-    //                                  "Result as CSV.");
-    // QCommandLineOption clResultAsTSV(QStringList() << "t"
-    //                                                << "tsv",
-    //                                  "Result as TSV.");
-    // QCommandLineOption clResultAsPlainText(QStringList() << "p"
-    //                                                      << "plaintext",
-    //                                        "Result as Plain Text.");
 
+    clList.setDefaultValue("false");
+    clList.setDescription("Show result as list. Default is false.");
+    clExtractorMode.setDefaultValue("HEURISTIC");
+    clExtractorMode.setValueName("RAW,FORMAT,HEURISTIC");
+    clExtractorMode.setDescription("Set extractor mode. Default is HEURISTIC.");
+    clOutputDirectory.setDefaultValue(".");
+    clOutputDirectory.setValueName("directory");
+    clOutputDirectory.setDescription("Set output directory. Default is current directory.");
+    parser.addPositionalArgument("file", "The file to extract from.");
+    parser.addPositionalArgument("directory", "The directory to extract from.");
+
+    parser.addOption(clList);
     parser.addOption(clExtractorMode);
     parser.addOption(clOutputDirectory);
-    // parser.addOption(clHeuristicScan);
-    // parser.addOption(clAggresiveScan);
-    // parser.addOption(clVerbose);
-    // parser.addOption(clAllTypesScan);
-    // parser.addOption(clFormatResult);
-    // parser.addOption(clResultAsXml);
-    // parser.addOption(clResultAsJson);
-    // parser.addOption(clResultAsCSV);
-    // parser.addOption(clResultAsTSV);
-    // parser.addOption(clResultAsPlainText);
 
     parser.process(app);
 
     QList<QString> listArgs = parser.positionalArguments();
 
     XExtractor::OPTIONS extractorOptions = XExtractor::getDefaultOptions();
+    extractorOptions.listFileTypes = XExtractor::getAvailableFileTypes();
+
+    if (parser.isSet(clList)) {
+        extractorOptions.bShowList = true;
+    }
 
     if (parser.isSet(clExtractorMode)) {
         QString sExtractorMode = parser.value(clExtractorMode);
@@ -185,24 +212,6 @@ int main(int argc, char *argv[])
         QString sOutputDirectory = parser.value(clOutputDirectory);
         extractorOptions.sOutputDirectory = sOutputDirectory;
     }
-
-    // scanOptions.bShowType = true;
-    // scanOptions.bShowInfo = true;
-    // scanOptions.bShowVersion = true;
-    // scanOptions.bIsRecursiveScan = parser.isSet(clRecursiveScan);
-    // scanOptions.bIsDeepScan = parser.isSet(clDeepScan);
-    // scanOptions.bIsHeuristicScan = parser.isSet(clHeuristicScan);
-    // scanOptions.bIsVerbose = parser.isSet(clVerbose);
-    // scanOptions.bIsAggressiveScan = parser.isSet(clAggresiveScan);
-    // scanOptions.bIsAllTypesScan = parser.isSet(clAllTypesScan);
-    // scanOptions.bFormatResult = parser.isSet(clFormatResult);
-    // scanOptions.bResultAsXML = parser.isSet(clResultAsXml);
-    // scanOptions.bResultAsJSON = parser.isSet(clResultAsJson);
-    // scanOptions.bResultAsCSV = parser.isSet(clResultAsCSV);
-    // scanOptions.bResultAsTSV = parser.isSet(clResultAsTSV);
-    // scanOptions.bResultAsPlainText = parser.isSet(clResultAsPlainText);
-    // scanOptions.nBufferSize = 2 * 1024 * 1024;  // TODO Check
-    // scanOptions.bIsHighlight = true;
 
     if (listArgs.count()) {
         nResult = ScanFiles(&listArgs, &extractorOptions);
