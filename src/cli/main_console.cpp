@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 
     if (parser.isSet(clExtractorMode)) {
         QString sExtractorMode = parser.value(clExtractorMode);
-        extractorOptions.emode = XBinary::ftStringToExtractorMode(sExtractorMode);
+        extractorOptions.emode = XExtractor::ftStringToExtractorMode(sExtractorMode);
     }
 
     if (parser.isSet(clOutputDirectory)) {
