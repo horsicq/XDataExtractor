@@ -27,6 +27,7 @@ GuiMainWindow::GuiMainWindow(QWidget *pParent) : QMainWindow(pParent), ui(new Ui
     ui->setupUi(this);
 
     g_pFile = nullptr;
+    g_pXInfo = nullptr;
 
     setWindowTitle(XOptions::getTitle(X_APPLICATIONDISPLAYNAME, X_APPLICATIONVERSION));
 
@@ -79,6 +80,11 @@ GuiMainWindow::GuiMainWindow(QWidget *pParent) : QMainWindow(pParent), ui(new Ui
 
 GuiMainWindow::~GuiMainWindow()
 {
+    if (g_pXInfo) {
+        delete g_pXInfo;
+        g_pXInfo = nullptr;
+    }
+
     if (g_pFile) {
         if (g_pFile->isOpen()) {
             g_pFile->close();
@@ -101,6 +107,11 @@ void GuiMainWindow::setFileName(const QString &sName)
     if (fi.isFile()) {
         ui->lineEditFileName->setText(sName);
 
+        if (g_pXInfo) {
+            delete g_pXInfo;
+            g_pXInfo = nullptr;
+        }
+
         if (g_pFile) {
             if (g_pFile->isOpen()) {
                 g_pFile->close();
@@ -111,13 +122,15 @@ void GuiMainWindow::setFileName(const QString &sName)
         }
 
         g_pFile = new QFile;
+        g_pXInfo = new XInfoDB;
+
         g_pFile->setFileName(sName);
 
         if (g_pFile->open(QIODevice::ReadOnly)) {
             XExtractor::OPTIONS extractorOptions = XExtractor::getDefaultOptions();
             extractorOptions.bMenu_Hex = true;
 
-            ui->widgetMain->setData(g_pFile, extractorOptions, true);
+            ui->widgetMain->setData(g_pFile, g_pXInfo, extractorOptions, true);
             g_xOptions.setLastFileName(sName);
 
             adjustView();

@@ -65,6 +65,7 @@ private:
     XShortcuts g_xShortcuts;
     QMenu *g_pRecentFilesMenu;
     QFile *g_pFile;
+    XInfoDB *g_pXInfo;
 };
 
 #endif  // GUIMAINWINDOW_H
