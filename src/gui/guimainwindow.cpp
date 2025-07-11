@@ -74,7 +74,7 @@ GuiMainWindow::GuiMainWindow(QWidget *pParent) : QMainWindow(pParent), ui(new Ui
     adjustView();
 
     if (QCoreApplication::arguments().count() > 1) {
-        setFileName(QCoreApplication::arguments().at(1));
+        setFileName(QCoreApplication::arguments().at(1), true);
     }
 }
 
@@ -100,7 +100,7 @@ GuiMainWindow::~GuiMainWindow()
     delete ui;
 }
 
-void GuiMainWindow::setFileName(const QString &sName)
+void GuiMainWindow::setFileName(const QString &sName, bool bOpen)
 {
     QFileInfo fi(sName);
 
@@ -130,7 +130,7 @@ void GuiMainWindow::setFileName(const QString &sName)
             XExtractor::OPTIONS extractorOptions = XExtractor::getDefaultOptions();
             extractorOptions.bMenu_Hex = true;
 
-            ui->widgetMain->setData(g_pFile, g_pXInfo, extractorOptions, true);
+            ui->widgetMain->setData(g_pFile, g_pXInfo, extractorOptions, bOpen);
             g_xOptions.setLastFileName(sName);
 
             adjustView();
@@ -152,9 +152,7 @@ void GuiMainWindow::on_pushButtonOpenFile_clicked()
     QString sFileName = QFileDialog::getOpenFileName(this, tr("Open file") + QString("..."), sDirectory, tr("All files") + QString(" (*)"));
 
     if (!sFileName.isEmpty()) {
-        if (g_xOptions.isScanAfterOpen()) {
-            setFileName(sFileName);
-        }
+        setFileName(sFileName, g_xOptions.isScanAfterOpen());
     }
 }
 
@@ -187,7 +185,7 @@ void GuiMainWindow::dropEvent(QDropEvent *pEvent)
 
             sFileName = XBinary::convertFileName(sFileName);
 
-            setFileName(sFileName);
+            setFileName(sFileName, true);
         }
     }
 }
