@@ -23,12 +23,12 @@
 
 #include <QString>
 
-#define X_APPLICATIONDISPLAYNAME "XCodeExtractor"
-#define X_APPLICATIONNAME "XCodeExtractor"
+#define X_APPLICATIONDISPLAYNAME "XDataExtractor"
+#define X_APPLICATIONNAME "XDataExtractor"
 #define X_APPLICATIONVERSION "0.1.0"
 #define X_ORGANIZATIONNAME "NTInfo"
 #define X_ORGANIZATIONDOMAIN "ntinfo.biz"
-#define X_OPTIONSFILE "XCodeExtractor.ini"
+#define X_OPTIONSFILE "XDataExtractor.ini"
 #define X_SHORTCUTSFILE "shortcuts.ini"
 
 #endif  // _GLOBAL_H
