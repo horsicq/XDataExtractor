@@ -45,7 +45,7 @@ public:
     ~GuiMainWindow() override;
 
 private slots:
-    void setFileName(const QString &sName, bool bOpen);
+    void setFileName(const QString &sName, bool bOpen = true);
     void on_pushButtonExit_clicked();
     void on_pushButtonOpenFile_clicked();
     void on_pushButtonAbout_clicked();
