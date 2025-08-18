@@ -163,15 +163,18 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
 
-    QCommandLineOption clList(QStringList() << "l" << "list");
+    QCommandLineOption clList(QStringList() << "l"
+                                            << "list");
     clList.setDescription("Show result as list.");
 
-    QCommandLineOption clExtractorMode(QStringList() << "m" << "mode");
+    QCommandLineOption clExtractorMode(QStringList() << "m"
+                                                     << "mode");
     clExtractorMode.setDefaultValue("HEURISTIC");
     clExtractorMode.setValueName("RAW,FORMAT,HEURISTIC,UNPACK");
     clExtractorMode.setDescription("Set extractor mode. Default is HEURISTIC.");
 
-    QCommandLineOption clOutputDirectory(QStringList() << "o" << "output");
+    QCommandLineOption clOutputDirectory(QStringList() << "o"
+                                                       << "output");
     clOutputDirectory.setDefaultValue(".");
     clOutputDirectory.setValueName("directory");
     clOutputDirectory.setDescription("Set output directory. Default is current directory.");
