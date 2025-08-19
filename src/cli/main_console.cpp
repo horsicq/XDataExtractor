@@ -167,6 +167,10 @@ int main(int argc, char *argv[])
                                             << "list");
     clList.setDescription("Show result as list.");
 
+    // QCommandLineOption clAll(QStringList() << "A"
+    //                                         << "all");
+    // clAll.setDescription("Extract all types");
+
     QCommandLineOption clExtractorMode(QStringList() << "m"
                                                      << "mode");
     clExtractorMode.setDefaultValue("HEURISTIC");
@@ -183,6 +187,7 @@ int main(int argc, char *argv[])
     parser.addPositionalArgument("directory", "The directory to extract from.");
 
     parser.addOption(clList);
+    // parser.addOption(clAll);
     parser.addOption(clExtractorMode);
     parser.addOption(clOutputDirectory);
 
@@ -191,11 +196,13 @@ int main(int argc, char *argv[])
     QList<QString> listArgs = parser.positionalArguments();
 
     XExtractor::OPTIONS extractorOptions = XExtractor::getDefaultOptions();
-    extractorOptions.listFileTypes = XExtractor::getAvailableFileTypes();
+    extractorOptions.listFileTypes = XExtractor::getAvailableFileTypes(XExtractor::EMODE_RAW); // TODO
 
     if (parser.isSet(clList)) {
         extractorOptions.bShowList = true;
     }
+
+    extractorOptions.bAllTypes = true;
 
     if (parser.isSet(clExtractorMode)) {
         QString sExtractorMode = parser.value(clExtractorMode);
