@@ -167,6 +167,10 @@ int main(int argc, char *argv[])
                                             << "list");
     clList.setDescription("Show result as list.");
 
+    QCommandLineOption clExtract(QStringList() << "x"
+                                            << "extract");
+    clExtract.setDescription("Extract data.");
+
     // QCommandLineOption clAll(QStringList() << "A"
     //                                         << "all");
     // clAll.setDescription("Extract all types");
@@ -187,6 +191,7 @@ int main(int argc, char *argv[])
     parser.addPositionalArgument("directory", "The directory to extract from.");
 
     parser.addOption(clList);
+    parser.addOption(clExtract);
     // parser.addOption(clAll);
     parser.addOption(clExtractorMode);
     parser.addOption(clOutputDirectory);
@@ -202,9 +207,14 @@ int main(int argc, char *argv[])
         extractorOptions.bShowList = true;
     }
 
-    extractorOptions.bAllTypes = true;
+    if (parser.isSet(clExtract)) {
+        extractorOptions.bExtract = true;
+    }
 
-    if (parser.isSet(clExtractorMode)) {
+    extractorOptions.bAllTypes = true;
+    extractorOptions.bAnalyze = true;
+
+    {
         QString sExtractorMode = parser.value(clExtractorMode);
         extractorOptions.emode = XExtractor::ftStringToExtractorMode(sExtractorMode);
     }
