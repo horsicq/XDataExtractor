@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
     clList.setDescription("Show result as list.");
 
     QCommandLineOption clExtract(QStringList() << "x"
-                                            << "extract");
+                                               << "extract");
     clExtract.setDescription("Extract data.");
 
     // QCommandLineOption clAll(QStringList() << "A"
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
     QList<QString> listArgs = parser.positionalArguments();
 
     XExtractor::OPTIONS extractorOptions = XExtractor::getDefaultOptions();
-    extractorOptions.listFileTypes = XExtractor::getAvailableFileTypes(XExtractor::EMODE_RAW); // TODO
+    extractorOptions.listFileTypes = XExtractor::getAvailableFileTypes(XExtractor::EMODE_RAW);  // TODO
 
     if (parser.isSet(clList)) {
         extractorOptions.bShowList = true;
