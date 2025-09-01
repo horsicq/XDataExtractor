@@ -2,16 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(xdec VERSION ${X_PROJECT_VERSION} LANGUAGES CXX)
 
-include(../../dep/build_tools/cmake/cpp_standart_setup.cmake)
-
-add_definitions(-DUSE_DEX)
-add_definitions(-DUSE_PDF)
-add_definitions(-DUSE_ARCHIVE)
-
-if(WIN32)
-    add_definitions(-DNOMINMAX)
-endif()
-
+include(${CMAKE_CURRENT_LIST_DIR}/../../dep/build_tools/cmake/cpp_standart_setup.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/../../dep/XExtractor/xextractor.cmake)
 
 set(PROJECT_SOURCES
@@ -31,6 +22,13 @@ else()
         ${QM_FILES}
     )
 endif()
+
+# Apply compile definitions per-target instead of globally
+set(XDEC_DEFINES USE_DEX USE_PDF USE_ARCHIVE)
+if(WIN32)
+    list(APPEND XDEC_DEFINES NOMINMAX)
+endif()
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${XDEC_DEFINES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE bzip2)
 target_link_libraries(${PROJECT_NAME} PRIVATE lzma)
@@ -59,6 +57,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 # On Windows create a console subsystem explicitly for clarity
 if(WIN32)
     target_link_options(${PROJECT_NAME} PRIVATE /SUBSYSTEM:CONSOLE)
+    if(MSVC)
+        # Avoid duplicate manifest: our resource.rc already includes windows.manifest.xml
+        target_link_options(${PROJECT_NAME} PRIVATE /MANIFEST:NO)
+    endif()
 endif()
 
 if(WIN32)

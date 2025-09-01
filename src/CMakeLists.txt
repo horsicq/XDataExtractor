@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
+# Detect Qt major version early; we only need Core to query QT_VERSION_MAJOR
 find_package(QT NAMES Qt5 Qt6 REQUIRED COMPONENTS Core)
 
 if(${QT_VERSION_MAJOR} EQUAL 5)
@@ -14,8 +15,19 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Network PrintSupport OpenGL Svg Qml LinguistTools)
 endif()
 
-file (STRINGS ${CMAKE_CURRENT_LIST_DIR}/../release_version.txt X_PROJECT_VERSION)
-project(NFD_project VERSION ${X_PROJECT_VERSION} LANGUAGES CXX)
+# Read version if not provided by the root CMakeLists
+if(NOT DEFINED X_PROJECT_VERSION)
+    file(STRINGS ${CMAKE_CURRENT_LIST_DIR}/../release_version.txt X_PROJECT_VERSION)
+endif()
+
+# Main project for the source subtree
+project(XDataExtractor VERSION ${X_PROJECT_VERSION} LANGUAGES CXX)
+
+# Enable Qt automoc/uic/rcc globally for subdirectories
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(X_COMPANYNAME "ntinfo")
 set(X_PROJECTNAME "XDataExtractor")

@@ -21,6 +21,9 @@
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QCoreApplication>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 
 #include "../global.h"
 #include "xextractor.h"
@@ -30,6 +33,8 @@
 qint32 handleFile(const QString &sFileName, XExtractor::OPTIONS *pExtractorOptions, qint32 nTotal)
 {
     qint32 nResult = 0;
+
+    Q_UNUSED(nTotal)
 
     QFileInfo fi(sFileName);
 
@@ -59,16 +64,12 @@ qint32 handleFile(const QString &sFileName, XExtractor::OPTIONS *pExtractorOptio
     } else if (fi.isDir()) {
         QDir dir(sFileName);
 
-        QFileInfoList eil = dir.entryInfoList();
+        QFileInfoList eil = dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
 
-        qint32 nNumberOfFiles = eil.count();
+        const qint32 nNumberOfFiles = eil.count();
 
         for (qint32 i = 0; i < nNumberOfFiles; i++) {
-            QString sFN = eil.at(i).fileName();
-
-            if ((sFN != ".") && (sFN != "..")) {
-                nResult += handleFile(eil.at(i).absoluteFilePath(), pExtractorOptions, nTotal);
-            }
+            nResult += handleFile(eil.at(i).absoluteFilePath(), pExtractorOptions, nTotal);
         }
     }
 
@@ -82,8 +83,6 @@ XOptions::CR ScanFiles(QList<QString> *pListArgs, XExtractor::OPTIONS *pExtracto
     // TODO check all parameters
 
     qint32 nNumberOfFiles = 0;
-
-    XOptions::printConsole("Get number of files", Qt::red);
 
     qint32 nCount = pListArgs->count();
 
@@ -103,8 +102,6 @@ XOptions::CR ScanFiles(QList<QString> *pListArgs, XExtractor::OPTIONS *pExtracto
     if (result != XOptions::CR_SUCCESS) {
         return result;
     }
-
-    bool bShowFileName = nNumberOfFiles > 1;
 
     for (qint32 i = 0; i < nCount; i++) {
         QString sFileName = pListArgs->at(i);
@@ -201,7 +198,6 @@ int main(int argc, char *argv[])
     QList<QString> listArgs = parser.positionalArguments();
 
     XExtractor::OPTIONS extractorOptions = XExtractor::getDefaultOptions();
-    extractorOptions.listFileTypes = XExtractor::getAvailableFileTypes(XExtractor::EMODE_RAW);  // TODO
 
     if (parser.isSet(clList)) {
         extractorOptions.bShowList = true;
@@ -219,9 +215,19 @@ int main(int argc, char *argv[])
         extractorOptions.emode = XExtractor::ftStringToExtractorMode(sExtractorMode);
     }
 
+    // Update available file types to match selected mode
+    extractorOptions.listFileTypes = XExtractor::getAvailableFileTypes(extractorOptions.emode);
+
     if (parser.isSet(clOutputDirectory)) {
         QString sOutputDirectory = parser.value(clOutputDirectory);
         extractorOptions.sOutputDirectory = sOutputDirectory;
+    }
+
+    // Ensure output directory exists when extracting
+    if (extractorOptions.bExtract) {
+        if (!extractorOptions.sOutputDirectory.isEmpty()) {
+            QDir().mkpath(extractorOptions.sOutputDirectory);
+        }
     }
 
     if (listArgs.count()) {

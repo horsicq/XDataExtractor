@@ -2,23 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 
 project(XDataExtractor VERSION ${X_PROJECT_VERSION} LANGUAGES CXX)
 
-message("X_RESOURCES " ${X_RESOURCES})
+include(${CMAKE_CURRENT_LIST_DIR}/../../dep/build_tools/cmake/cpp_standart_setup.cmake)
 
-include(../../dep/build_tools/cmake/cpp_standart_setup.cmake)
-
-message("X_RESOURCES " ${X_RESOURCES})
-message("PROJECT_NAME " ${PROJECT_NAME})
-
-add_definitions(-DUSE_DEX)
-add_definitions(-DUSE_PDF)
-add_definitions(-DUSE_ARCHIVE)
-
-if(WIN32)
-    add_definitions(-DNOMINMAX)
-endif()
+message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-include(../../dep/build_tools/cmake/init_translation.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../../dep/build_tools/cmake/init_translation.cmake)
 endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../dep/XExtractorWidget/xextractorwidget.cmake)
@@ -42,7 +31,7 @@ set(PROJECT_SOURCES
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-include(../../dep/build_tools/cmake/create_translation.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../../dep/build_tools/cmake/create_translation.cmake)
 endif()
 
 if(WIN32)
@@ -69,9 +58,15 @@ else()
     )
 endif()
 
+set(XDE_DEFINES USE_DEX USE_PDF USE_ARCHIVE)
+if(WIN32)
+    list(APPEND XDE_DEFINES NOMINMAX)
+endif()
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${XDE_DEFINES})
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
     if(APPLE)
-        include(../../dep/build_tools/cmake/macdeployqt.cmake)
+        include(${CMAKE_CURRENT_LIST_DIR}/../../dep/build_tools/cmake/macdeployqt.cmake)
     endif()
 endif()
 
@@ -111,11 +106,16 @@ message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "CMAKE_INSTALL_BINDIR: ${CMAKE_INSTALL_BINDIR}")
 message(STATUS "CMAKE_INSTALL_LIBDIR: ${CMAKE_INSTALL_LIBDIR}")
 
+if(WIN32 AND MSVC)
+    # Avoid duplicate manifest: our resource file already embeds windows.manifest.xml
+    target_link_options(${PROJECT_NAME} PRIVATE /MANIFEST:NO)
+endif()
+
 if(WIN32)
     install (TARGETS ${PROJECT_NAME} DESTINATION "./")
-    include(../../dep/build_tools/cmake/deploy_qt_windows.cmake)
-    include(../../dep/build_tools/cmake/deploy_msvc.cmake)
-    include(../../dep/build_tools/cmake/deploy_openssl.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/../../dep/build_tools/cmake/deploy_qt_windows.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/../../dep/build_tools/cmake/deploy_msvc.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/../../dep/build_tools/cmake/deploy_openssl.cmake)
 elseif(APPLE)
     install(TARGETS ${PROJECT_NAME}
         BUNDLE DESTINATION .
