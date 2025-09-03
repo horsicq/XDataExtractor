@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.16)
 # Detect Qt major version early; we only need Core to query QT_VERSION_MAJOR
 find_package(QT NAMES Qt5 Qt6 REQUIRED COMPONENTS Core)
 
-if(${QT_VERSION_MAJOR} EQUAL 5)
+# Guard QT_VERSION_MAJOR being undefined to avoid tokenization errors when
+# find_package didn't set it. Use DEFINED check before comparing numeric value.
+if(DEFINED QT_VERSION_MAJOR AND QT_VERSION_MAJOR EQUAL 5)
     if(${QT_VERSION} VERSION_GREATER_EQUAL 5.6.0)
         find_package(Qt5 REQUIRED COMPONENTS Widgets Concurrent Network Script ScriptTools PrintSupport OpenGL Svg Sql LinguistTools)
     else()
@@ -11,8 +13,22 @@ if(${QT_VERSION_MAJOR} EQUAL 5)
     endif()
 endif()
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+if(DEFINED QT_VERSION_MAJOR AND QT_VERSION_MAJOR GREATER_EQUAL 6)
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Network PrintSupport OpenGL Svg Qml LinguistTools)
+endif()
+
+# Ensure imported Qt targets exist for AUTOMOC/AUTOUIC. In some CMake
+# environments the generic find_package(QT ...) may not populate the
+# Qt5::/Qt6:: targets for this directory, so explicitly find the
+# concrete Qt package if needed.
+if(DEFINED QT_VERSION_MAJOR AND QT_VERSION_MAJOR EQUAL 5)
+    if(NOT TARGET Qt5::Widgets)
+        find_package(Qt5 REQUIRED COMPONENTS Widgets Concurrent Network Script ScriptTools PrintSupport OpenGL Svg Sql LinguistTools)
+    endif()
+elseif(DEFINED QT_VERSION_MAJOR AND QT_VERSION_MAJOR GREATER_EQUAL 6)
+    if(NOT TARGET Qt${QT_VERSION_MAJOR}::Widgets)
+        find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Network PrintSupport OpenGL Svg Qml LinguistTools)
+    endif()
 endif()
 
 # Read version if not provided by the root CMakeLists
