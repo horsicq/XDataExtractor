@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
     QCommandLineOption clExtractorMode(QStringList() << "m"
                                                      << "mode");
     clExtractorMode.setDefaultValue("HEURISTIC");
-    clExtractorMode.setValueName("RAW,FORMAT,HEURISTIC,UNPACK");
+    clExtractorMode.setValueName("RAW, FORMAT, HEURISTIC, UNPACK");
     clExtractorMode.setDescription("Set extractor mode. Default is HEURISTIC.");
 
     QCommandLineOption clOutputDirectory(QStringList() << "o"
