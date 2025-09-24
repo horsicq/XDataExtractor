@@ -45,7 +45,13 @@ qint32 handleFile(const QString &sFileName, XExtractor::OPTIONS *pExtractorOptio
         if (file.open(QIODevice::ReadOnly)) {
             XExtractor::DATA extractorData = {};
             extractorData.options = *pExtractorOptions;
-            XBinary::FT fileType = XBinary::getPrefFileType(&file, true);
+            XBinary::FT fileType = extractorData.options.fileType;
+
+            if (fileType == XBinary::FT_UNKNOWN) {
+                QSet<XBinary::FT> stFileTypes = XFormats::getFileTypes(&file, true);
+                fileType = XBinary::_getPrefFileType(&stFileTypes);
+            }
+
             extractorData.memoryMap = XFormats::getMemoryMap(fileType, XBinary::MAPMODE_UNKNOWN, &file);
             XExtractor extractor;
             extractor.setData(&file, &extractorData, nullptr);
