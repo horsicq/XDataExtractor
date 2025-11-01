@@ -33,6 +33,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE ${XDEC_DEFINES})
 target_link_libraries(${PROJECT_NAME} PRIVATE bzip2)
 target_link_libraries(${PROJECT_NAME} PRIVATE lzma)
 target_link_libraries(${PROJECT_NAME} PRIVATE zlib)
+target_link_libraries(${PROJECT_NAME} PRIVATE ppmd)
 target_link_libraries(${PROJECT_NAME} PRIVATE capstone)
 
 if(DEFINED QT_VERSION_MAJOR)
