@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.18)
 
 # Detect Qt major version early; we only need Core to query QT_VERSION_MAJOR
 find_package(QT NAMES Qt5 Qt6 REQUIRED COMPONENTS Core)
